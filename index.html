@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TODO</title>
+</head>
+<body>
+  <input type="text" id="task">
+  <button>Enviar Tarea</button>
+
+  <div class="tasks">
+  </div>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script>
+    var baseUrl = "http://makeitreal-todo.herokuapp.com/todo_items";
+
+    $.getJSON(baseUrl, function(tasks) {
+      tasks.forEach((task) => {
+        $(".tasks").append(`<div id="task-${task.id}">${task.title} <a href="#" data-id="${task.id}" class="delete">x</a></div>`);
+      });
+    });
+
+    $("button").on("click", function() {
+      var task = $("#task").val();
+      $("input").val("");
+
+      $.ajax({
+        method: "POST",
+        url: baseUrl,
+        contentType: "application/json",
+        data: JSON.stringify({ title: task }),
+        dataType: "json"
+      }).done(function(data) {
+        console.log(data);
+      }).fail(function(error) {
+        console.log(error);
+      });
+    });
+
+    // tenemos que hacerlo de esta forma porque las tareas se
+    // agregan de forma dinámica y necesitamos enlazar el evento
+    // a un elemento que exista desde el principio
+    $(".tasks").on("click", ".delete", function(e) {
+      e.preventDefault();
+
+      var id = $(e.currentTarget).data("id");
+      $("#task-" + id).remove();
+
+      // DELETE
+      var url = baseUrl + "/" + id;
+      $.ajax({
+        method: "DELETE",
+        url: url
+      }).done(function() {
+        console.log("Eliminado del servidor");
+      }).fail(function(error) {
+        console.log(error);
+      });
+    });
+  </script>
+</body>
+</html>
